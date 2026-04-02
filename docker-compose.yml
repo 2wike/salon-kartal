@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: salon_kartal_db
+    restart: always
+    environment:
+      POSTGRES_DB: salon_kartal
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: kartal2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build: ./backend
+    container_name: salon_kartal_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://admin:kartal2024@db:5432/salon_kartal
+      JWT_SECRET: salon_kartal_super_secret_jwt_key_2024
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - uploads_data:/app/uploads
+
+  frontend:
+    build: ./frontend
+    container_name: salon_kartal_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  uploads_data:
